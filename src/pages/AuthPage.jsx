@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router-dom'
+﻿import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FaArrowLeft, FaGlobe, FaMoon, FaShieldAlt, FaSun } from 'react-icons/fa'
 import { FcGoogle } from 'react-icons/fc'
@@ -6,6 +6,7 @@ import logo from '../assets/logo.jpeg'
 import { usePreferences } from '../context/AppPreferencesContext.jsx'
 
 function AuthPage({ mode }) {
+  const navigate = useNavigate()
   const { content, isDark, toggleLanguage, toggleTheme, language, theme } = usePreferences()
   const auth = mode === 'signup' ? content.auth.signUp : content.auth.signIn
   const alternatePath = mode === 'signup' ? '/signin' : '/signup'
@@ -60,6 +61,7 @@ function AuthPage({ mode }) {
 
             <motion.button
               type="button"
+              onClick={() => navigate('/dashboard')}
               whileHover={{ y: -3, scale: 1.01 }}
               whileTap={{ scale: 0.97 }}
               className={`mt-7 inline-flex w-full items-center justify-center gap-3 rounded-lg border px-5 py-4 text-sm font-black shadow-[0_18px_38px_rgba(96,58,34,0.12)] transition ${isDark ? 'border-white/12 bg-white text-[#241A14] hover:bg-[#E6B377]' : 'border-[#EAD8C7] bg-white text-[#241A14] hover:border-[#B67848] hover:bg-[#FFF8F2]'}`}
@@ -87,3 +89,4 @@ function AuthPage({ mode }) {
 }
 
 export default AuthPage
+
