@@ -1,4 +1,6 @@
 ﻿import { motion } from 'framer-motion'
+import DashboardProperties from './DashboardProperties.jsx'
+import DashboardSettings from './DashboardSettings.jsx'
 import { FaFileAlt, FaPlus, FaTools } from 'react-icons/fa'
 
 function statusClass(status) {
@@ -135,16 +137,18 @@ function DashboardModule({ activeView, copy, isDark }) {
   return (
     <>
       <SectionIntro view={activeView} copy={copy} isDark={isDark} />
-      {activeView === 'properties' && <DataTable section={copy.properties} copy={copy} isDark={isDark} />}
+      {activeView === 'properties' && <DashboardProperties isDark={isDark} />}
       {activeView === 'tenants' && <DataTable section={copy.tenants} copy={copy} isDark={isDark} />}
       {activeView === 'payments' && <DataTable section={copy.payments} copy={copy} isDark={isDark} />}
       {activeView === 'maintenance' && <MaintenanceView copy={copy} isDark={isDark} />}
       {activeView === 'expenses' && <ExpensesView copy={copy} isDark={isDark} />}
       {activeView === 'reports' && <ReportsView copy={copy} isDark={isDark} />}
       {activeView === 'documents' && <ListPanel title={copy.documents.title} subtitle={copy.documents.subtitle} items={copy.documents.files} isDark={isDark} />}
-      {activeView === 'settings' && <ListPanel title={copy.settings.title} subtitle={copy.settings.subtitle} items={copy.settings.items} isDark={isDark} />}
+      {activeView === 'settings' && <DashboardSettings copy={copy} isDark={isDark} />}
     </>
   )
 }
 
 export default DashboardModule
+
+

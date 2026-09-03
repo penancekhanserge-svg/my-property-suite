@@ -37,6 +37,7 @@ export const dashboardCopy = {
     landlord: 'Landlord',
     menu: 'Menu',
     premium: 'Premium',
+    signOut: 'Back to Home',
     premiumText: '24 properties under active management.',
     language: { en: 'ENG', fr: 'FR' },
     nav: {
@@ -140,8 +141,8 @@ export const dashboardCopy = {
     },
     settings: {
       title: 'Workspace Settings',
-      subtitle: 'Manage profile, roles, notifications, and portfolio preferences.',
-      items: ['Profile details', 'Team roles', 'Notification rules', 'Billing preferences'],
+      subtitle: 'Manage landlord details, building information, receipts, and contract terms.',
+      items: ['Landlord details', 'Building details', 'Receipt setup', 'Building contract terms'],
     },
   },
   fr: {
@@ -153,6 +154,7 @@ export const dashboardCopy = {
     landlord: 'Bailleur',
     menu: 'Menu',
     premium: 'Premium',
+    signOut: 'Retour accueil',
     premiumText: '24 propriétés en gestion active.',
     language: { en: 'ENG', fr: 'FR' },
     nav: {
@@ -256,8 +258,13 @@ export const dashboardCopy = {
     },
     settings: {
       title: 'Paramètres espace',
-      subtitle: 'Gérez profil, rôles, notifications et préférences du portefeuille.',
-      items: ['Détails du profil', 'Rôles équipe', 'Règles de notification', 'Préférences facturation'],
+      subtitle: 'Gérez les détails du bailleur, le bâtiment, les reçus et les règles du contrat.',
+      items: ['Détails du bailleur', 'Détails du bâtiment', 'Configuration reçu', 'Conditions du bâtiment'],
     },
   },
 }
+
+
+
+
+
