@@ -1,4 +1,4 @@
-﻿import { motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import DashboardProperties from './DashboardProperties.jsx'
 import DashboardSettings from './DashboardSettings.jsx'
 import { FaFileAlt, FaPlus, FaTools } from 'react-icons/fa'
@@ -136,7 +136,7 @@ function ListPanel({ title, subtitle, items, isDark }) {
 function DashboardModule({ activeView, copy, isDark }) {
   return (
     <>
-      <SectionIntro view={activeView} copy={copy} isDark={isDark} />
+      {activeView !== 'properties' && <SectionIntro view={activeView} copy={copy} isDark={isDark} />}
       {activeView === 'properties' && <DashboardProperties isDark={isDark} />}
       {activeView === 'tenants' && <DataTable section={copy.tenants} copy={copy} isDark={isDark} />}
       {activeView === 'payments' && <DataTable section={copy.payments} copy={copy} isDark={isDark} />}
