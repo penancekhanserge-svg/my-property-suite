@@ -21,6 +21,7 @@ import {
 import { usePreferences } from '../../context/AppPreferencesContext.jsx'
 import { initialProperties, propertyCopy } from '../../data/propertyData.js'
 import houseImage from '../../assets/house.png'
+import TenantOnboardingFlow from './TenantOnboardingFlow.jsx'
 
 const storageKey = 'mps-dashboard-properties-v3'
 
@@ -450,7 +451,7 @@ function PropertyMetric({ icon: Icon, value, label, isDark }) {
   )
 }
 
-function RoomCard({ room, text, isDark, menuOpen, onToggleMenu, onViewDetails, onEditRoom, onDeleteRoom }) {
+function RoomCard({ room, text, isDark, menuOpen, onToggleMenu, onViewDetails, onOnboardTenant, onEditRoom, onDeleteRoom }) {
   const meta = text.roomTypes[room.type]
   const occupied = room.status === 'occupied'
   const avatarTone = occupied ? 'bg-[#8F5735] text-white' : 'bg-[#F7E0CA] text-[#A9673C]'
@@ -493,7 +494,7 @@ function RoomCard({ room, text, isDark, menuOpen, onToggleMenu, onViewDetails, o
       </div>
 
       <div className="relative mt-4 grid grid-cols-[minmax(0,1fr)_38px] gap-2">
-        <button type="button" onClick={occupied ? onViewDetails : onEditRoom} className={`inline-flex h-9 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-black transition hover:-translate-y-1 ${actionClass}`}>
+        <button type="button" onClick={occupied ? onViewDetails : onOnboardTenant} className={`inline-flex h-9 items-center justify-center gap-2 rounded-lg border px-3 text-xs font-black transition hover:-translate-y-1 ${actionClass}`}>
           {!occupied && <FaPlus />}
           {occupied ? text.viewDetails : text.onboardTenant}
         </button>
@@ -592,6 +593,7 @@ function DashboardProperties({ isDark }) {
   const [openPropertyMenu, setOpenPropertyMenu] = useState('')
   const [editingRoom, setEditingRoom] = useState(null)
   const [detailsRoom, setDetailsRoom] = useState(null)
+  const [onboardingRoom, setOnboardingRoom] = useState(null)
   const [openRoomMenu, setOpenRoomMenu] = useState('')
 
   const selectedProperty = properties.find((property) => property.id === selectedId) ?? properties[0]
@@ -607,6 +609,8 @@ function DashboardProperties({ isDark }) {
   const selectedStats = getPropertyStats(selectedProperty)
   const detailsProperty = detailsRoom ? properties.find((property) => property.id === detailsRoom.propertyId) : null
   const detailsRoomData = detailsProperty?.rooms.find((room) => room.id === detailsRoom.roomId)
+  const onboardingProperty = onboardingRoom ? properties.find((property) => property.id === onboardingRoom.propertyId) : null
+  const onboardingRoomData = onboardingProperty?.rooms.find((room) => room.id === onboardingRoom.roomId)
 
   const commitProperties = (next) => {
     setProperties(next)
@@ -659,6 +663,7 @@ function DashboardProperties({ isDark }) {
     setRoomForm({ ...emptyRoom, propertyId })
     setEditingRoom(null)
     setDetailsRoom(null)
+    setOnboardingRoom(null)
     setOpenRoomMenu('')
     setShowRoomForm(true)
   }
@@ -672,6 +677,15 @@ function DashboardProperties({ isDark }) {
 
   const openRoomDetails = (propertyId, roomId) => {
     setDetailsRoom({ propertyId, roomId })
+    setOnboardingRoom(null)
+    setOpenRoomMenu('')
+  }
+
+  const openTenantOnboarding = (propertyId, roomId) => {
+    setOnboardingRoom({ propertyId, roomId })
+    setDetailsRoom(null)
+    setEditingRoom(null)
+    setShowRoomForm(false)
     setOpenRoomMenu('')
   }
 
@@ -741,6 +755,9 @@ function DashboardProperties({ isDark }) {
     }
     if (detailsRoom?.propertyId === propertyId) {
       setDetailsRoom(null)
+    }
+    if (onboardingRoom?.propertyId === propertyId) {
+      setOnboardingRoom(null)
     }
   }
 
@@ -826,6 +843,37 @@ function DashboardProperties({ isDark }) {
     if (detailsRoom?.propertyId === propertyId && detailsRoom?.roomId === roomId) {
       setDetailsRoom(null)
     }
+    if (onboardingRoom?.propertyId === propertyId && onboardingRoom?.roomId === roomId) {
+      setOnboardingRoom(null)
+    }
+  }
+
+  const completeTenantOnboarding = (payload) => {
+    const next = properties.map((property) => (
+      property.id === payload.propertyId
+        ? {
+            ...property,
+            rooms: property.rooms.map((room) => (
+              room.id === payload.roomId
+                ? {
+                    ...room,
+                    status: 'occupied',
+                    tenant: payload.tenant.fullName,
+                    expires: payload.rental.nextDueDateLabel,
+                    tenantProfile: payload.tenant,
+                    rentalTerms: payload.rental,
+                    contract: payload.contract,
+                    signatures: payload.signatures,
+                  }
+                : room
+            )),
+          }
+        : property
+    ))
+
+    commitProperties(next)
+    selectProperty(payload.propertyId)
+    setOnboardingRoom(null)
   }
 
   return (
@@ -862,6 +910,16 @@ function DashboardProperties({ isDark }) {
           <Modal title={`${detailsRoomData.name} ${text.roomDetails}`} subtitle={`${detailsProperty.name} - ${text.roomTypes[detailsRoomData.type]}`} onClose={() => setDetailsRoom(null)} isDark={isDark}>
             <RoomDetails property={detailsProperty} room={detailsRoomData} text={text} isDark={isDark} onEdit={() => openEditRoom(detailsProperty.id, detailsRoomData.id)} />
           </Modal>
+        )}
+        {onboardingProperty && onboardingRoomData && (
+          <TenantOnboardingFlow
+            property={onboardingProperty}
+            room={onboardingRoomData}
+            text={text}
+            isDark={isDark}
+            onCancel={() => setOnboardingRoom(null)}
+            onComplete={completeTenantOnboarding}
+          />
         )}
       </AnimatePresence>
 
@@ -923,7 +981,8 @@ function DashboardProperties({ isDark }) {
                   menuOpen={openRoomMenu === menuKey}
                   onToggleMenu={() => setOpenRoomMenu((current) => (current === menuKey ? '' : menuKey))}
                   onViewDetails={() => openRoomDetails(selectedProperty.id, room.id)}
-                  onEditRoom={() => openEditRoom(selectedProperty.id, room.id, room.status !== 'occupied')}
+                  onOnboardTenant={() => openTenantOnboarding(selectedProperty.id, room.id)}
+                  onEditRoom={() => openEditRoom(selectedProperty.id, room.id)}
                   onDeleteRoom={() => deleteRoom(selectedProperty.id, room.id)}
                 />
               )
