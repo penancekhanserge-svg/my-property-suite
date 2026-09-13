@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import DashboardPayments from './DashboardPayments.jsx'
 import DashboardProperties from './DashboardProperties.jsx'
 import DashboardSettings from './DashboardSettings.jsx'
 import { FaCheckCircle, FaCrown, FaFileAlt, FaPlus } from 'react-icons/fa'
@@ -133,10 +134,10 @@ function ListPanel({ title, subtitle, items, isDark }) {
 function DashboardModule({ activeView, copy, isDark }) {
   return (
     <>
-      {activeView !== 'properties' && <SectionIntro view={activeView} copy={copy} isDark={isDark} />}
+      {activeView !== 'properties' && activeView !== 'payments' && <SectionIntro view={activeView} copy={copy} isDark={isDark} />}
       {activeView === 'properties' && <DashboardProperties isDark={isDark} />}
       {activeView === 'tenants' && <DataTable section={copy.tenants} copy={copy} isDark={isDark} />}
-      {activeView === 'payments' && <DataTable section={copy.payments} copy={copy} isDark={isDark} />}
+      {activeView === 'payments' && <DashboardPayments copy={copy} isDark={isDark} />}
       {activeView === 'subscriptions' && <SubscriptionsView copy={copy} isDark={isDark} />}
       {activeView === 'expenses' && <ExpensesView copy={copy} isDark={isDark} />}
       {activeView === 'reports' && <ReportsView copy={copy} isDark={isDark} />}

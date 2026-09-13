@@ -79,8 +79,8 @@ export const dashboardCopy = {
       { label: 'Total Properties', value: '24', change: '+2 new properties' },
     ],
     overview: {
-      revenue: 'Revenue Overview',
-      month: 'This Month',
+      revenue: 'Collection Timeline',
+      month: 'Advance rent flow',
       income: 'Income',
       expenses: 'Expenses',
       net: 'Net Profit',
@@ -90,8 +90,8 @@ export const dashboardCopy = {
       occupancy: 'Occupancy',
       arrears: 'Arrears',
       renewals: 'Renewals due',
-      maintenance: 'Open maintenance',
-      activityItems: ['Rent received from Sarah Johnson', 'Maintenance request created for Apt 2A', 'Michael Brown added to Maple Heights', 'Property tax expense logged'],
+      subscriptions: 'Subscriptions',
+      activityItems: ['Rent received from Sarah Johnson', 'Premium subscription renewed', 'Michael Brown added to Maple Heights', 'Property tax expense logged'],
     },
     properties: {
       title: 'Property Portfolio',
@@ -117,7 +117,7 @@ export const dashboardCopy = {
     },
     payments: {
       title: 'Rent & Payments',
-      subtitle: 'Follow paid, pending, partial, and overdue rent without spreadsheet confusion.',
+      subtitle: 'Track advance rent, next due dates, receipts, caution deposits, and tenant balances without spreadsheet confusion.',
       headers: ['Reference', 'Tenant', 'Due Date', 'Amount', 'Status'],
       rows: [
         ['INV-1024', 'Sarah Johnson', 'Sep 01, 2026', '250,000 FCFA', 'Paid'],
@@ -226,8 +226,8 @@ export const dashboardCopy = {
       { label: 'Total propriétés', value: '24', change: '+2 nouvelles propriétés' },
     ],
     overview: {
-      revenue: 'Aperçu des revenus',
-      month: 'Ce mois',
+      revenue: 'Calendrier des encaissements',
+      month: 'Flux loyers avances',
       income: 'Revenus',
       expenses: 'Dépenses',
       net: 'Profit net',
@@ -237,8 +237,8 @@ export const dashboardCopy = {
       occupancy: 'Occupation',
       arrears: 'Impayés',
       renewals: 'Renouvellements',
-      maintenance: 'Maintenance ouverte',
-      activityItems: ['Loyer reçu de Sarah Johnson', 'Demande de maintenance créée pour Apt 2A', 'Michael Brown ajouté à Maple Heights', 'Dépense de taxe foncière ajoutée'],
+      subscriptions: 'Abonnements',
+      activityItems: ['Loyer reçu de Sarah Johnson', 'Abonnement Premium renouvele', 'Michael Brown ajouté à Maple Heights', 'Dépense de taxe foncière ajoutée'],
     },
     properties: {
       title: 'Portefeuille immobilier',
@@ -264,7 +264,7 @@ export const dashboardCopy = {
     },
     payments: {
       title: 'Loyers & paiements',
-      subtitle: 'Suivez loyers payés, en attente, partiels et en retard sans confusion.',
+      subtitle: 'Suivez loyers avances, prochaines echeances, recus, cautions et soldes locataires sans confusion.',
       headers: ['Référence', 'Locataire', 'Échéance', 'Montant', 'Statut'],
       rows: [
         ['INV-1024', 'Sarah Johnson', '01 Sep 2026', '250,000 FCFA', 'Payé'],
