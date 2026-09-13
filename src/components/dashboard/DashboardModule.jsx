@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import DashboardProperties from './DashboardProperties.jsx'
 import DashboardSettings from './DashboardSettings.jsx'
-import { FaFileAlt, FaPlus, FaTools } from 'react-icons/fa'
+import { FaCheckCircle, FaCrown, FaFileAlt, FaPlus } from 'react-icons/fa'
 
 function statusClass(status) {
   const value = status.toLowerCase()
@@ -62,20 +62,17 @@ function DataTable({ section, copy, isDark }) {
   )
 }
 
-function MaintenanceView({ copy, isDark }) {
+function SubscriptionsView({ copy, isDark }) {
   return (
     <section className="grid gap-4 lg:grid-cols-3">
-      {copy.maintenance.requests.map((item) => (
-        <motion.article key={item.title} whileHover={{ y: -8 }} className="group relative overflow-hidden rounded-lg bg-white p-px shadow-[0_18px_42px_rgba(96,58,34,0.08)]">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#E6B377] via-[#B67848] to-[#241A14] opacity-35 transition group-hover:opacity-95" />
+      {copy.subscriptions.cards.map((item, index) => (
+        <motion.article key={item.label} whileHover={{ y: -8 }} className="group relative overflow-hidden rounded-lg bg-white p-px shadow-[0_18px_42px_rgba(96,58,34,0.08)]">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#F0D0B2] via-[#B67848] to-[#8F5735] opacity-35 transition group-hover:opacity-95" />
           <div className={`relative rounded-[7px] p-5 ${isDark ? 'bg-[#17100C]' : 'bg-white'}`}>
-            <span className="grid size-11 place-items-center rounded-lg bg-[#F7E0CA] text-[#A9673C]"><FaTools /></span>
-            <h3 className={`mt-5 text-lg font-black ${isDark ? 'text-white' : 'text-[#241A14]'}`}>{item.title}</h3>
-            <p className={`mt-2 text-sm font-bold ${isDark ? 'text-white/52' : 'text-[#75675F]'}`}>{item.unit}</p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-700">{item.priority}</span>
-              <span className="rounded-full bg-[#F7E0CA] px-3 py-1 text-xs font-black text-[#8E512F]">{item.status}</span>
-            </div>
+            <span className="grid size-11 place-items-center rounded-lg bg-[#F7E0CA] text-[#A9673C]">{index === 0 ? <FaCrown /> : <FaCheckCircle />}</span>
+            <p className={`mt-5 text-xs font-black uppercase tracking-[0.14em] ${isDark ? 'text-white/42' : 'text-[#8B7A70]'}`}>{item.label}</p>
+            <h3 className={`mt-2 text-xl font-black ${isDark ? 'text-white' : 'text-[#241A14]'}`}>{item.value}</h3>
+            <p className={`mt-2 text-sm font-bold ${isDark ? 'text-white/52' : 'text-[#75675F]'}`}>{item.note}</p>
           </div>
         </motion.article>
       ))}
@@ -140,7 +137,7 @@ function DashboardModule({ activeView, copy, isDark }) {
       {activeView === 'properties' && <DashboardProperties isDark={isDark} />}
       {activeView === 'tenants' && <DataTable section={copy.tenants} copy={copy} isDark={isDark} />}
       {activeView === 'payments' && <DataTable section={copy.payments} copy={copy} isDark={isDark} />}
-      {activeView === 'maintenance' && <MaintenanceView copy={copy} isDark={isDark} />}
+      {activeView === 'subscriptions' && <SubscriptionsView copy={copy} isDark={isDark} />}
       {activeView === 'expenses' && <ExpensesView copy={copy} isDark={isDark} />}
       {activeView === 'reports' && <ReportsView copy={copy} isDark={isDark} />}
       {activeView === 'documents' && <ListPanel title={copy.documents.title} subtitle={copy.documents.subtitle} items={copy.documents.files} isDark={isDark} />}

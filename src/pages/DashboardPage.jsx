@@ -16,8 +16,8 @@ function DashboardPage() {
   return (
     <div className={`min-h-screen transition-colors duration-500 ${isDark ? 'bg-[#0F0A07]' : 'bg-[#FBF7F2]'}`}>
       <DashboardSidebar activeView={activeView} setActiveView={setActiveView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} copy={copy} isDark={isDark} />
-      <div className="lg:pl-[270px]">
-        <DashboardTopbar copy={copy} isDark={isDark} language={language} setLanguage={setLanguage} theme={theme} toggleTheme={toggleTheme} setSidebarOpen={setSidebarOpen} />
+      <div className="lg:pl-[250px]">
+        <DashboardTopbar copy={copy} isDark={isDark} language={language} setLanguage={setLanguage} theme={theme} toggleTheme={toggleTheme} setSidebarOpen={setSidebarOpen} setActiveView={setActiveView} />
         <main className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           <motion.div key={activeView} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}>
             {activeView === 'overview' ? <DashboardOverview copy={copy} isDark={isDark} /> : <DashboardModule activeView={activeView} copy={copy} isDark={isDark} />}

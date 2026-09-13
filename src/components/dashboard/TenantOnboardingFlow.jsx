@@ -23,7 +23,10 @@ import {
   FaMoneyBillWave,
   FaPenNib,
   FaPhoneAlt,
+  FaPlus,
+  FaSave,
   FaTimes,
+  FaTrashAlt,
   FaUser,
 } from 'react-icons/fa'
 import { usePreferences } from '../../context/AppPreferencesContext.jsx'
@@ -32,6 +35,7 @@ import houseImage from '../../assets/house.png'
 import brandLogo from '../../assets/logo.jpeg'
 
 const settingsStorageKey = 'mps-dashboard-settings'
+const tenantCareClause = 'The Tenant shall keep the property in good condition and shall not use nails, drill, modify, repair, or alter any part of the property without authorization from the Landlord or Caretaker. Any damage, fault, or maintenance issue must be promptly reported to the Landlord or Caretaker.'
 
 const onboardingCopy = {
   en: {
@@ -51,6 +55,17 @@ const onboardingCopy = {
     rentalSubtitle: 'Define the rent amount, payment periods and move-in details.',
     contractTitle: 'Tenancy Contract',
     contractSubtitle: 'A draft contract has been generated using the tenant and rental information. Please review carefully.',
+    editContractTerms: 'Edit Contract Terms',
+    editContractTermsHelp: 'Edit, remove, or add clauses for this contract.',
+    termEditorTitle: 'Contract Terms Editor',
+    termEditorSubtitle: 'Adjust the clauses that will appear on the live contract and downloaded PDF.',
+    clauseTitle: 'Clause Title',
+    clauseText: 'Clause Text',
+    addClause: 'Add Clause',
+    removeClause: 'Remove Clause',
+    resetTerms: 'Reset Terms',
+    saveTerms: 'Save Terms',
+    newClauseTitle: 'New Clause',
     agreementTitle: 'Tenancy Agreement',
     agreementTitleLead: 'Tenancy',
     agreementTitleAccent: 'Agreement',
@@ -117,6 +132,7 @@ const onboardingCopy = {
     cautionDeposit: 'Caution / Security Deposit',
     cautionAmount: 'Caution Amount (FCFA)',
     cautionMonths: 'Caution Months',
+    noCaution: 'No caution required',
     nextPaymentAmount: 'Next Expected Payment Amount (FCFA)',
     nextDueDate: 'Next Payment Due Date',
     afterInitial: 'After the initial period, the tenant will pay every',
@@ -125,7 +141,12 @@ const onboardingCopy = {
     every: 'Every',
     initialFormula: 'Monthly Rent x',
     downloadPdf: 'Download PDF',
+    finalContractActions: 'Final Contract Actions',
+    finalContractActionsHelp: 'Download the agreement or save the signed contract.',
     contractSummary: 'Contract Summary',
+    contractClauses: 'Contract Clauses',
+    clause: 'clause',
+    clauses: 'clauses',
     tenantName: 'Tenant Name',
     property: 'Property',
     initialPeriod: 'Initial Period',
@@ -163,6 +184,8 @@ const onboardingCopy = {
     continueToReview: 'Continue to Review',
     complete: 'Complete Onboarding',
     completeSuccess: 'Tenant onboarded successfully.',
+    saveContract: 'Save Contract',
+    contractSaved: 'Contract saved successfully.',
     placeholders: {
       fullName: 'e.g. Grace Mensah',
       phone: 'e.g. 677 123 456',
@@ -198,6 +221,17 @@ const onboardingCopy = {
     rentalSubtitle: 'Definissez le loyer, les periodes et la date entree.',
     contractTitle: 'Contrat de bail',
     contractSubtitle: 'Un brouillon de contrat a ete genere avec les informations du locataire et du loyer.',
+    editContractTerms: 'Modifier les conditions',
+    editContractTermsHelp: 'Modifiez, supprimez ou ajoutez les clauses de ce contrat.',
+    termEditorTitle: 'Editeur des conditions',
+    termEditorSubtitle: 'Ajustez les clauses qui apparaitront sur le contrat et le PDF.',
+    clauseTitle: 'Titre clause',
+    clauseText: 'Texte clause',
+    addClause: 'Ajouter clause',
+    removeClause: 'Supprimer clause',
+    resetTerms: 'Reinitialiser',
+    saveTerms: 'Enregistrer conditions',
+    newClauseTitle: 'Nouvelle clause',
     agreementTitle: 'Contrat de bail',
     agreementTitleLead: 'Contrat',
     agreementTitleAccent: 'de bail',
@@ -264,6 +298,7 @@ const onboardingCopy = {
     cautionDeposit: 'Caution / Depot garantie',
     cautionAmount: 'Montant caution (FCFA)',
     cautionMonths: 'Mois de caution',
+    noCaution: 'Aucune caution requise',
     nextPaymentAmount: 'Prochain montant attendu (FCFA)',
     nextDueDate: 'Prochaine date paiement',
     afterInitial: 'Apres la periode initiale, le locataire paiera chaque',
@@ -272,7 +307,12 @@ const onboardingCopy = {
     every: 'Chaque',
     initialFormula: 'Loyer mensuel x',
     downloadPdf: 'Telecharger PDF',
+    finalContractActions: 'Actions finales contrat',
+    finalContractActionsHelp: 'Telechargez le contrat ou sauvegardez le contrat signe.',
     contractSummary: 'Resume contrat',
+    contractClauses: 'Clauses contrat',
+    clause: 'clause',
+    clauses: 'clauses',
     tenantName: 'Nom locataire',
     property: 'Propriete',
     initialPeriod: 'Periode initiale',
@@ -310,6 +350,8 @@ const onboardingCopy = {
     continueToReview: 'Continuer vers revision',
     complete: 'Terminer onboarding',
     completeSuccess: 'Locataire installe.',
+    saveContract: 'Sauvegarder contrat',
+    contractSaved: 'Contrat sauvegarde.',
     placeholders: {
       fullName: 'e.g. Grace Mensah',
       phone: 'e.g. 677 123 456',
@@ -405,6 +447,166 @@ function monthsLabel(months, copy) {
 
 function cycleLabel(months, copy) {
   return `${copy.every} ${monthsLabel(months, copy)}`
+}
+
+function hasCautionDeposit(rental, computed) {
+  return Number(rental.cautionMonths || 0) > 0 && Number(computed.cautionAmount || 0) > 0
+}
+
+function cautionLabel(rental, computed, copy) {
+  return hasCautionDeposit(rental, computed)
+    ? `${formatMoney(computed.cautionAmount)} (${monthsLabel(rental.cautionMonths, copy)})`
+    : copy.noCaution
+}
+
+function createDefaultContractTerms(settings) {
+  const buildingTerms = Array.isArray(settings.contractTerms)
+    ? settings.contractTerms
+        .map((term) => (typeof term === 'string' ? term : term?.text))
+        .map((term) => String(term || '').trim())
+        .filter(Boolean)
+    : []
+
+  const baseTerms = [
+    {
+      id: 'use-of-property',
+      title: 'Use Of Property',
+      text: 'The premises are for residential use only. The Tenant shall not engage in illegal activities, sublet without written consent, or make structural changes without prior approval.',
+    },
+    {
+      id: 'care-maintenance',
+      title: 'Care & Maintenance',
+      text: tenantCareClause,
+    },
+    {
+      id: 'landlord-duties',
+      title: 'Landlord Duties',
+      text: "The Landlord shall deliver the property in habitable condition, support peaceful occupation, handle major structural repairs where necessary, and respect the Tenant's privacy except in emergencies or after reasonable notice.",
+    },
+    {
+      id: 'tenant-duties',
+      title: 'Tenant Duties',
+      text: 'The Tenant shall pay rent on time, keep the premises clean, report needed repairs, pay agreed utilities, and return the property in good condition allowing for normal wear and tear.',
+    },
+    {
+      id: 'utilities',
+      title: 'Utilities',
+      text: 'The Tenant shall pay for electricity, water, waste collection, and any other agreed utility charges unless otherwise stated in writing.',
+    },
+    {
+      id: 'inspection-termination',
+      title: 'Inspection & Termination',
+      text: 'The Landlord may inspect with at least 24 hours notice, except in emergencies. Either party may terminate for rent default, serious property damage, unlawful use, or serious breach of this Agreement.',
+    },
+    {
+      id: 'law-agreement',
+      title: 'Law & Agreement',
+      text: 'This Agreement is governed by the laws of Cameroon. Disputes shall first be resolved amicably before court action. This document replaces prior agreements, and amendments must be written and signed by both parties.',
+    },
+  ]
+
+  if (!buildingTerms.length) return baseTerms
+
+  return [
+    baseTerms[0],
+    {
+      id: 'building-rules',
+      title: 'Building Rules',
+      text: buildingTerms.map((term, index) => `${index + 1}. ${term}`).join('\n'),
+    },
+    ...baseTerms.slice(1),
+  ]
+}
+
+function normalizeContractTerms(terms, fallbackTerms = []) {
+  const normalized = (Array.isArray(terms) ? terms : [])
+    .map((term, index) => {
+      const title = String(term?.title || `Clause ${index + 1}`).trim()
+      const text = String(term?.text || '').trim()
+      if (!text) return null
+      return {
+        id: term?.id || `contract-term-${index + 1}`,
+        title: title || `Clause ${index + 1}`,
+        text,
+      }
+    })
+    .filter(Boolean)
+
+  return normalized.length ? normalized : fallbackTerms
+}
+
+function contractTermTextToHtml(value) {
+  return escapeHtml(value)
+    .replace(/Landlord or Caretaker/g, '<strong>Landlord or Caretaker</strong>')
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .map((line) => line || '&nbsp;')
+    .join('<br>')
+}
+
+const contractShortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const contractFullMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+function ordinalDay(day) {
+  if (day > 3 && day < 21) return `${day}th`
+  const suffixes = ['th', 'st', 'nd', 'rd']
+  return `${day}${suffixes[day % 10] || 'th'}`
+}
+
+function contractDate(dateValue) {
+  if (dateValue instanceof Date) return Number.isNaN(dateValue.getTime()) ? new Date() : dateValue
+  const date = new Date(`${dateValue}T00:00:00`)
+  return Number.isNaN(date.getTime()) ? new Date() : date
+}
+
+function contractShortDate(dateValue) {
+  const date = contractDate(dateValue)
+  return `${date.getDate()} ${contractShortMonths[date.getMonth()]} ${date.getFullYear()}`
+}
+
+function contractLongDate(dateValue) {
+  const date = contractDate(dateValue)
+  return `${date.getDate()} ${contractFullMonths[date.getMonth()]} ${date.getFullYear()}`
+}
+
+function getContractDocumentData({ property, room, tenant, rental, computed, settings, text, copy }) {
+  const moveInDate = contractDate(rental.moveInDate)
+  const initialMonths = Number(rental.advanceMonths || 0)
+  const cycleMonths = Number(rental.cycleMonths || 0)
+  const cautionMonths = Number(rental.cautionMonths || 0)
+  const hasCaution = hasCautionDeposit(rental, computed)
+  const cautionTerm = `${cautionMonths} ${cautionMonths === 1 ? 'month' : 'months'}`
+
+  return {
+    tenantName: tenant.fullName || copy.sample.tenantName,
+    tenantPhone: tenant.phone || copy.sample.phone,
+    tenantEmail: tenant.email || copy.sample.email,
+    tenantAddress: tenant.address || property.address || '',
+    tenantOccupation: tenant.occupation || copy.sample.occupation,
+    tenantId: tenant.idNumber || copy.sample.idNumber,
+    tenantEmergencyPhone: tenant.emergencyPhone || copy.sample.emergencyPhone,
+    landlordName: settings.profile.landlordName || settings.receipt.signatureName || 'John Doe',
+    landlordPhone: settings.profile.phone || '+237 651 508 182',
+    landlordEmail: settings.profile.email || 'landlord@mypropertysuite.com',
+    landlordAddress: settings.building.address || property.address || 'Douala, Cameroon',
+    unitType: text.roomTypes[room.type],
+    initialMonths,
+    cycleMonths,
+    initialTerm: `${initialMonths} ${initialMonths === 1 ? 'month' : 'months'}`,
+    cycleTerm: `Every ${cycleMonths} ${cycleMonths === 1 ? 'month' : 'months'}`,
+    rentAmount: Number(rental.monthlyRent || 0).toLocaleString('en-US'),
+    initialAmountLabel: Number(computed.initialAmount || 0).toLocaleString('en-US'),
+    nextAmountLabel: Number(computed.nextAmount || 0).toLocaleString('en-US'),
+    cautionAmountLabel: Number(computed.cautionAmount || 0).toLocaleString('en-US'),
+    cautionTerm,
+    hasCaution,
+    agreementDateText: `${ordinalDay(moveInDate.getDate())} day of ${contractFullMonths[moveInDate.getMonth()]} ${moveInDate.getFullYear()}`,
+    moveInDateLabel: contractShortDate(moveInDate),
+    moveInLongDate: contractLongDate(moveInDate),
+    endDateLabel: contractShortDate(computed.endDate),
+    endLongDate: contractLongDate(computed.endDate),
+    nextDueDateLabel: contractShortDate(computed.nextDueDate),
+  }
 }
 
 function Field({ label, value, onChange, placeholder, icon: Icon, isDark, required = false, type = 'text', className = '', readOnly = false }) {
@@ -660,13 +862,14 @@ function RentalTermsStep({ rental, setRental, computed, copy, isDark }) {
   const monthValues = Array.from({ length: 12 }, (_, index) => String(index + 1))
   const advanceOptions = monthValues.map((value) => ({ value, label: monthsLabel(value, copy) }))
   const cycleOptions = monthValues.map((value) => ({ value, label: cycleLabel(value, copy) }))
+  const cautionOptions = [{ value: '0', label: copy.noCaution }, ...advanceOptions]
   const update = (key, value) => {
     setRental((current) => {
       if (key === 'cautionMonths') {
         return {
           ...current,
           cautionMonths: value,
-          cautionAmount: String(Number(current.monthlyRent || 0) * Number(value || 0)),
+          cautionAmount: value === '0' ? '' : String(Number(current.monthlyRent || 0) * Number(value || 0)),
         }
       }
 
@@ -690,8 +893,8 @@ function RentalTermsStep({ rental, setRental, computed, copy, isDark }) {
           <Field label={copy.endDate} readOnly type="date" value={computed.endDate} onChange={() => {}} icon={FaCalendarAlt} isDark={isDark} />
         </div>
         <div className="space-y-4">
-          <SelectField label={copy.cautionMonths} required value={rental.cautionMonths} onChange={(value) => update('cautionMonths', value)} options={advanceOptions} isDark={isDark} />
-          <Field label={copy.cautionAmount} required type="number" value={rental.cautionAmount} onChange={(value) => update('cautionAmount', value)} icon={FaCoins} isDark={isDark} />
+          <SelectField label={`${copy.cautionMonths} (${copy.optional})`} value={rental.cautionMonths} onChange={(value) => update('cautionMonths', value)} options={cautionOptions} isDark={isDark} />
+          <Field label={`${copy.cautionAmount} (${copy.optional})`} type="number" value={rental.cautionAmount} onChange={(value) => update('cautionAmount', value)} icon={FaCoins} isDark={isDark} />
           <SelectField label={copy.paymentCycle} required value={rental.cycleMonths} onChange={(value) => update('cycleMonths', value)} options={cycleOptions} isDark={isDark} />
           <div className={cx('rounded-xl border p-4', isDark ? 'border-[#B67848]/20 bg-[#3A2417]/32' : 'border-[#E8C8AA] bg-[#FFF7EA]')}>
             <div className="flex gap-3">
@@ -830,138 +1033,399 @@ function ContractSummaryPanel({ items, copy, isDark }) {
   )
 }
 
-function ContractPreview({ property, room, tenant, rental, computed, settings, text, copy, language, isDark, onDownload }) {
-  const tenantName = tenant.fullName || copy.sample.tenantName
-  const contractTerms = settings.contractTerms?.length ? settings.contractTerms : []
-  const unitType = text.roomTypes[room.type]
-  const tenantPhone = tenant.phone || copy.sample.phone
-  const tenantEmail = tenant.email || copy.sample.email
-  const tenantAddress = tenant.address || property.address
-  const tenantId = tenant.idNumber || copy.sample.idNumber
-  const tenantOccupation = tenant.occupation || copy.sample.occupation
-  const tenantEmergencyPhone = tenant.emergencyPhone || copy.sample.emergencyPhone
-  const idTypeLabels = { national: copy.nationalId, passport: copy.passport, driver: copy.driverLicense }
-  const tenantIdType = idTypeLabels[tenant.idType] ?? tenant.idType
-  const landlordName = settings.profile.landlordName || settings.receipt.signatureName || '-'
-  const landlordPhone = settings.profile.phone || '-'
-  const landlordEmail = settings.profile.email || '-'
-  const landlordAddress = settings.building.address || property.address
-  const summaryItems = [
-    { icon: FaFileContract, label: copy.agreementDate, value: formatDisplayDate(rental.moveInDate, language) },
-    { icon: FaClipboardCheck, label: copy.agreementStatus, value: copy.draftAgreement },
-    { icon: FaUser, label: copy.landlord, value: landlordName },
-    { icon: FaPhoneAlt, label: copy.landlordPhone, value: landlordPhone },
-    { icon: FaEnvelope, label: copy.landlordEmail, value: landlordEmail },
-    { icon: FaMapMarkerAlt, label: copy.landlordAddress, value: landlordAddress },
-    { icon: FaUser, label: copy.tenantName, value: tenantName },
-    { icon: FaPhoneAlt, label: copy.tenantPhone, value: tenantPhone },
-    { icon: FaEnvelope, label: copy.tenantEmail, value: tenantEmail },
-    { icon: FaBriefcase, label: copy.occupation, value: tenantOccupation },
-    { icon: FaIdCard, label: copy.idType, value: tenantIdType },
-    { icon: FaIdCard, label: copy.idNumber, value: tenantId },
-    { icon: FaMapMarkerAlt, label: copy.tenantAddress, value: tenantAddress },
-    { icon: FaPhoneAlt, label: copy.emergencyPhone, value: tenantEmergencyPhone },
-    { icon: FaHome, label: copy.buildingName, value: property.name },
-    { icon: FaMapMarkerAlt, label: copy.location, value: property.address },
-    { icon: FaHome, label: copy.unitType, value: unitType },
-    { icon: FaDoorOpen, label: copy.roomName, value: room.name },
-    { icon: FaMoneyBillWave, label: copy.monthlyRent, value: formatMoney(rental.monthlyRent) },
-    { icon: FaCalendarAlt, label: copy.initialPeriod, value: monthsLabel(rental.advanceMonths, copy) },
-    { icon: FaCalendarAlt, label: copy.endDate, value: formatDisplayDate(computed.endDate, language) },
-    { icon: FaCoins, label: copy.initialAmount, value: formatMoney(computed.initialAmount) },
-    { icon: FaCalendarAlt, label: copy.renewalAfterInitial, value: cycleLabel(rental.cycleMonths, copy) },
-    { icon: FaMoneyBillWave, label: copy.nextPaymentAmount, value: formatMoney(computed.nextAmount) },
-    { icon: FaCalendarAlt, label: copy.nextDueDate, value: formatDisplayDate(computed.nextDueDate, language) },
-  ]
+function PrintMetaItem({ icon: Icon, label, value }) {
+  return (
+    <div className="flex min-w-0 items-center gap-3 border-r border-[#E6D8CB] p-4 last:border-r-0">
+      <span className="grid size-[42px] shrink-0 place-items-center rounded-[14px] bg-[#F5E7DC] text-[20px] text-[#8F5735]">
+        <Icon />
+      </span>
+      <div className="min-w-0">
+        <p className="text-[10px] font-black uppercase leading-tight text-[#7B8790]">{label}</p>
+        <p className="mt-1 break-words text-[15px] font-black leading-tight text-[#17100C]">{value}</p>
+      </div>
+    </div>
+  )
+}
+
+function ContractDocHeading({ children }) {
+  return <h2 className="mb-[3px] mt-[5px] text-[15px] font-black uppercase leading-none text-[#9A5D35]">{children}</h2>
+}
+
+function ContractField({ label, value }) {
+  return (
+    <p className="mb-[7px] text-left">
+      <strong className="font-black">{label}:</strong> {value || '-'}
+    </p>
+  )
+}
+
+function ContractTermText({ text }) {
+  return (
+    <span className="whitespace-pre-line">
+      {String(text || '').split(/(Landlord or Caretaker)/g).map((part, index) => (
+        part === 'Landlord or Caretaker' ? <strong key={`${part}-${index}`}>{part}</strong> : part
+      ))}
+    </span>
+  )
+}
+
+function ContractDocumentView({ property, room, tenant, rental, computed, settings, text, copy, signatures = {}, contractTerms = [] }) {
+  const doc = getContractDocumentData({ property, room, tenant, rental, computed, settings, text, copy })
+  const landlordSignatureDate = contractShortDate(signatures.landlordDate)
+  const tenantSignatureDate = contractShortDate(signatures.tenantDate)
+  const displayTerms = normalizeContractTerms(contractTerms, createDefaultContractTerms(settings))
 
   return (
-    <SectionPanel icon={FaFileContract} title={copy.contractTitle} subtitle={copy.contractSubtitle} isDark={isDark}>
-      <div className="mb-4 flex justify-end">
-        <button type="button" onClick={onDownload} className={cx('inline-flex h-10 items-center justify-center gap-2 rounded-lg border px-4 text-xs font-black transition hover:-translate-y-1', isDark ? 'border-white/10 bg-white/[0.05] text-white hover:border-[#B67848]' : 'border-[#EAD8C7] bg-[#FFFCF8] text-[#8F5735] hover:border-[#B67848]')}>
-          <FaDownload />
-          {copy.downloadPdf}
-        </button>
-      </div>
-      <div className="space-y-4">
-        <div className={cx('max-h-[520px] overflow-y-auto rounded-xl border p-6 shadow-inner', isDark ? 'border-white/10 bg-white text-[#17100C]' : 'border-[#EAD8C7] bg-white text-[#17100C]')}>
-          <div className="mx-auto max-w-[680px]">
-            <DocumentHeader property={property} room={room} text={text} copy={copy} />
-
-            <div className="mt-6">
-              <h5 className="text-sm font-black uppercase text-[#17100C]">{copy.contractDetailsTitle}</h5>
-              <p className="mt-2 text-justify text-sm font-medium leading-7 text-[#241A14]">
-                {copy.agreementIntro} {copy.contractDetailsIntro}
-              </p>
+    <article className="mx-auto min-h-[1123px] w-[794px] border border-[#BDBDBD] bg-white text-[#111]">
+      <div className="relative mb-[6px] overflow-hidden border-b border-[#EFE4DA] bg-[linear-gradient(135deg,#FFFFFF_0%,#FFF9F4_50%,#FDF1E8_100%)] px-7 pb-7 pt-6 shadow-[0_24px_58px_rgba(96,58,34,0.12)]">
+        <FaHome className="pointer-events-none absolute -bottom-20 -right-20 text-[250px] text-[#8F5735]/[0.055]" />
+        <div className="relative flex items-start justify-between gap-5">
+          <div className="flex items-center gap-3">
+            <span className="grid size-[54px] place-items-center rounded-2xl border border-[#EAD8C7] bg-white shadow-[0_14px_30px_rgba(96,58,34,0.12)]">
+              <img src={brandLogo} alt="" className="size-[42px] object-contain" />
+            </span>
+            <div>
+              <p className="font-serif text-[26px] font-black leading-none text-[#241A14]">MyPropertySuite</p>
+              <p className="mt-1 font-sans text-[14px] font-semibold italic text-[#4F433C]">{copy.brandTagline}</p>
             </div>
-
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <ContractReviewCard icon={FaUser} title={copy.partiesOverview}>
-                <ContractReviewRow label={copy.landlord} value={landlordName} />
-                <ContractReviewRow label={copy.landlordPhone} value={landlordPhone} />
-                <ContractReviewRow label={copy.landlordEmail} value={landlordEmail} />
-                <ContractReviewRow label={copy.landlordAddress} value={landlordAddress} />
-                <ContractReviewRow label={copy.tenant} value={tenantName} />
-                <ContractReviewRow label={copy.tenantPhone} value={tenantPhone} />
-                <ContractReviewRow label={copy.tenantEmail} value={tenantEmail} />
-                <ContractReviewRow label={copy.occupation} value={tenantOccupation} />
-                <ContractReviewRow label={copy.idType} value={tenantIdType} />
-                <ContractReviewRow label={copy.idNumber} value={tenantId} />
-                <ContractReviewRow label={copy.tenantAddress} value={tenantAddress} />
-                <ContractReviewRow label={copy.emergencyPhone} value={tenantEmergencyPhone} />
-              </ContractReviewCard>
-
-              <ContractReviewCard icon={FaHome} title={copy.propertyOverview}>
-                <ContractReviewRow label={copy.buildingName} value={property.name} />
-                <ContractReviewRow label={copy.location} value={property.address} />
-                <ContractReviewRow label={copy.unitType} value={unitType} />
-                <ContractReviewRow label={copy.roomName} value={room.name} />
-                <ContractReviewRow label={copy.currentAddress} value={tenantAddress} />
-              </ContractReviewCard>
-
-              <ContractReviewCard icon={FaMoneyBillWave} title={copy.paymentOverview}>
-                <ContractReviewRow label={copy.monthlyRent} value={formatMoney(rental.monthlyRent)} />
-                <ContractReviewRow label={copy.initialPeriod} value={monthsLabel(rental.advanceMonths, copy)} />
-                <ContractReviewRow label={copy.initialAmount} value={formatMoney(computed.initialAmount)} />
-                <ContractReviewRow label={copy.renewalAfterInitial} value={cycleLabel(rental.cycleMonths, copy)} />
-                <ContractReviewRow label={copy.nextPaymentAmount} value={formatMoney(computed.nextAmount)} />
-              </ContractReviewCard>
-
-              <ContractReviewCard icon={FaCalendarAlt} title={copy.tenancyOverview}>
-                <ContractReviewRow label={copy.moveInDate} value={formatDisplayDate(rental.moveInDate, language)} />
-                <ContractReviewRow label={copy.endDate} value={formatDisplayDate(computed.endDate, language)} />
-                <ContractReviewRow label={copy.subsequentCycle} value={cycleLabel(rental.cycleMonths, copy)} />
-                <ContractReviewRow label={copy.nextDueDate} value={formatDisplayDate(computed.nextDueDate, language)} />
-              </ContractReviewCard>
-            </div>
-
-            <ContractBodySection number="1" title={copy.rentalTerms}>
-              <p>The landlord, {landlordName}, agrees to rent {room.name}, a {unitType} in {property.name}, located at {property.address}, to {tenantName}. The tenant agrees to pay {formatMoney(rental.monthlyRent)} as monthly rent for the assigned unit.</p>
-              <p>The tenant will pay an initial advance period of {monthsLabel(rental.advanceMonths, copy)}, making an initial amount of {formatMoney(computed.initialAmount)}. The initial paid period starts on {formatDisplayDate(rental.moveInDate, language)} and ends on {formatDisplayDate(computed.endDate, language)}.</p>
-              <p>After the initial period, the tenant will renew the tenancy on a {cycleLabel(rental.cycleMonths, copy).toLowerCase()} basis. The next expected payment is {formatMoney(computed.nextAmount)}, due on {formatDisplayDate(computed.nextDueDate, language)}.</p>
-            </ContractBodySection>
-
-            <ContractBodySection number="2" title={copy.propertyOverview}>
-              <p>The property covered by this agreement is {property.name}. The assigned unit is room {room.name}, categorized as {unitType}. The property location is {property.address}, and all tenancy obligations apply to this specific unit and its attached facilities.</p>
-            </ContractBodySection>
-
-            <ContractBodySection number="3" title={copy.partiesOverview}>
-              <p>The landlord contact on record is {landlordPhone}, with address {landlordAddress}. The tenant contact on record is {tenantPhone}, with identification number {tenantId} and address {tenantAddress}.</p>
-            </ContractBodySection>
-
-            <ContractBodySection number="4" title={copy.rulesTitle}>
-              <ol className="list-decimal space-y-2 pl-5">
-                {contractTerms.map((term) => <li key={term.id} className="text-justify">{term.text}</li>)}
-              </ol>
-            </ContractBodySection>
-
-            <ContractBodySection number="5" title={copy.tenancyOverview}>
-              <p>This agreement shall commence on {formatDisplayDate(rental.moveInDate, language)} and continue according to the payment cycle agreed above. The landlord should review the parties, property, payment, renewal cycle, and building rules before proceeding to signatures.</p>
-            </ContractBodySection>
+          </div>
+          <div className="flex items-center gap-4 pt-2 font-sans text-[12px] font-bold uppercase text-[#89827E]">
+            <span className="h-px w-[54px] bg-[#9A5D35]" />
+            <span>{copy.contractMotto}</span>
           </div>
         </div>
 
-        <ContractSummaryPanel items={summaryItems} copy={copy} isDark={isDark} />
+        <div className="relative mt-12 text-center">
+          <h1 className="m-0 font-serif text-[54px] font-black uppercase leading-none text-[#17100C]">
+            {copy.agreementTitleLead} <span className="text-[#9A5D35]">{copy.agreementTitleAccent}</span>
+          </h1>
+          <div className="mt-4 flex items-center justify-center gap-5 font-sans text-[13px] font-bold uppercase text-[#89827E]">
+            <span className="h-px w-14 bg-[#9A5D35]" />
+            <span>{copy.contractSubMotto}</span>
+            <span className="h-px w-14 bg-[#9A5D35]" />
+          </div>
+        </div>
+
+        <div className="relative mx-auto mt-9 grid grid-cols-4 overflow-hidden rounded-[20px] border border-[#EFE4DA] bg-white/90 shadow-[0_20px_46px_rgba(96,58,34,0.10)]">
+          <PrintMetaItem icon={FaHome} label={copy.buildingName} value={property.name} />
+          <PrintMetaItem icon={FaMapMarkerAlt} label={copy.location} value={property.address} />
+          <PrintMetaItem icon={FaDoorOpen} label={copy.unitType} value={doc.unitType} />
+          <PrintMetaItem icon={FaDoorOpen} label={copy.roomName} value={room.name} />
+        </div>
       </div>
+
+      <div className="px-2 pb-5 font-sans text-[9px] leading-[1.35] text-[#111]">
+        <p className="mb-[5px] text-left">This House Rental Agreement is made on the <strong>{doc.agreementDateText}</strong> between the Landlord and Tenant identified below.</p>
+
+        <ContractDocHeading>1. Parties</ContractDocHeading>
+        <table className="w-full table-fixed border-collapse border border-[#DFC8B8]">
+          <thead>
+            <tr>
+              <th className="border border-[#DFC8B8] bg-[#F8F1EA] px-4 py-2 text-left text-[13px] font-black uppercase text-[#9A5D35]">Landlord</th>
+              <th className="border border-[#DFC8B8] bg-[#F8F1EA] px-4 py-2 text-left text-[13px] font-black uppercase text-[#9A5D35]">Tenant</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border border-[#DFC8B8] px-4 py-2 align-top">
+                <ContractField label="Name" value={doc.landlordName} />
+                <ContractField label="National ID" value="-" />
+                <ContractField label="Address" value={doc.landlordAddress} />
+                <ContractField label="Telephone" value={doc.landlordPhone} />
+                <ContractField label="Email" value={doc.landlordEmail} />
+              </td>
+              <td className="border border-[#DFC8B8] px-4 py-2 align-top">
+                <ContractField label="Name" value={doc.tenantName} />
+                <ContractField label="National ID" value={doc.tenantId} />
+                <ContractField label="Email" value={doc.tenantEmail} />
+                <ContractField label="Occupation" value={doc.tenantOccupation} />
+                <ContractField label="Address" value={doc.tenantAddress} />
+                <ContractField label="Telephone" value={doc.tenantPhone} />
+                <ContractField label="Emergency Telephone" value={doc.tenantEmergencyPhone} />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="mb-[5px] mt-[6px] text-left">The Landlord hereby rents to the Tenant the property described below under the terms and conditions of this Agreement.</p>
+
+        <ContractDocHeading>2. Property</ContractDocHeading>
+        <table className="w-full table-fixed border-collapse border border-[#DFC8B8]">
+          <thead>
+            <tr>
+              {['Building Name', 'Location', 'Unit Type', 'Room Name'].map((label) => (
+                <th key={label} className="border border-[#DFC8B8] bg-[#F8F1EA] px-2 py-[7px] text-left text-[10px] font-black uppercase text-[#5D5048]">{label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border border-[#DFC8B8] px-2 py-2 font-black">{property.name}</td>
+              <td className="border border-[#DFC8B8] px-2 py-2 font-black">{property.address}</td>
+              <td className="border border-[#DFC8B8] px-2 py-2 font-black">{doc.unitType}</td>
+              <td className="border border-[#DFC8B8] px-2 py-2 font-black">{room.name}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ContractDocHeading>3. Terms Of Tenancy</ContractDocHeading>
+        <p className="mb-[7px] text-justify">The tenancy shall commence on <strong>{doc.moveInLongDate}</strong> for an initial period of <strong>{doc.initialTerm}</strong>, ending on <strong>{doc.endLongDate}</strong>. The tenancy may be renewed upon mutual agreement of both parties. After the initial period, the Tenant agrees to continue rent payments in advance <strong>{doc.cycleTerm.toLowerCase()}</strong>.</p>
+        <table className="w-full table-fixed border-collapse border border-[#DFC8B8]">
+          <thead>
+            <tr>
+              {['Start Date', 'Initial Period', 'Initial End Date', 'Subsequent Cycle'].map((label) => (
+                <th key={label} className="border border-[#DFC8B8] bg-[#F8F1EA] px-2 py-[7px] text-left text-[10px] font-black uppercase text-[#5D5048]">{label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border border-[#DFC8B8] px-2 py-2 font-black">{doc.moveInDateLabel}</td>
+              <td className="border border-[#DFC8B8] px-2 py-2 font-black">{doc.initialTerm}</td>
+              <td className="border border-[#DFC8B8] px-2 py-2 font-black">{doc.endDateLabel}</td>
+              <td className="border border-[#DFC8B8] px-2 py-2 font-black">{doc.cycleTerm}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ContractDocHeading>4. Rent &amp; Payment Schedule</ContractDocHeading>
+        <table className="w-full table-fixed border-collapse border border-[#DFC8B8]">
+          <thead>
+            <tr>
+              {['Monthly Rent', 'Initial Advance', 'Initial Amount', 'Next Payment'].map((label) => (
+                <th key={label} className="border border-[#DFC8B8] bg-[#F8F1EA] px-2 py-[7px] text-left text-[10px] font-black uppercase text-[#5D5048]">{label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border border-[#DFC8B8] px-2 py-2 font-black">{doc.rentAmount} FCFA<span className="mt-1 block text-[8px] font-medium text-[#5D5048]">Payable per month</span></td>
+              <td className="border border-[#DFC8B8] px-2 py-2 font-black">{doc.initialTerm}<span className="mt-1 block text-[8px] font-medium text-[#5D5048]">Paid in advance</span></td>
+              <td className="border border-[#DFC8B8] px-2 py-2 font-black">{doc.initialAmountLabel} FCFA<span className="mt-1 block text-[8px] font-medium text-[#5D5048]">{doc.rentAmount} x {doc.initialMonths} months</span></td>
+              <td className="border border-[#DFC8B8] px-2 py-2 font-black">{doc.nextAmountLabel} FCFA<span className="mt-1 block text-[8px] font-medium text-[#5D5048]">{doc.cycleTerm}</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="mb-[7px] mt-[6px] text-justify">After the initial period, the subsequent payment cycle shall be <strong>{doc.cycleTerm.toLowerCase()}</strong>. The expected payment for each cycle is <strong>{doc.nextAmountLabel} FCFA</strong>, with the next payment due on <strong>{doc.nextDueDateLabel}</strong>.</p>
+
+        <ContractDocHeading>5. Caution / Security Deposit</ContractDocHeading>
+        <p className="mb-[7px] text-justify">
+          {doc.hasCaution ? (
+            <>The Tenant shall pay a refundable caution, also called security deposit, of <strong>{doc.cautionAmountLabel} FCFA</strong> before taking possession of the premises. The caution represents <strong>{doc.cautionTerm}</strong> and may be refunded after the Tenant vacates, less unpaid rent, utility arrears, or deductions for damage beyond normal wear and tear.</>
+          ) : (
+            <>No caution/security deposit is required for this tenancy unless both parties later agree otherwise in writing.</>
+          )}
+        </p>
+
+        <ContractDocHeading>6. Contract Conditions Summary</ContractDocHeading>
+        <table className="w-full table-fixed border-collapse border border-[#DFC8B8]">
+          <tbody>
+            {displayTerms.map((term) => (
+              <tr key={term.id}>
+                <th className="w-[23%] border border-[#DFC8B8] bg-[#F8F1EA] px-2 py-[6px] text-left text-[9px] font-black uppercase text-[#5D5048]">{term.title}</th>
+                <td className="border border-[#DFC8B8] px-2 py-[6px] text-justify"><ContractTermText text={term.text} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <ContractDocHeading>7. Acknowledgement</ContractDocHeading>
+        <p className="mb-[7px] text-justify">By signing below, both parties confirm that they have read, understood and accepted the terms stated in this Agreement.</p>
+        <table className="w-full table-fixed border-collapse border border-[#DFC8B8]">
+          <thead>
+            <tr>
+              <th className="border border-[#DFC8B8] bg-[#F8F1EA] px-3 py-[6px] text-left text-[10px] font-black uppercase">Landlord Signature</th>
+              <th className="border border-[#DFC8B8] bg-[#F8F1EA] px-3 py-[6px] text-left text-[10px] font-black uppercase">Tenant Signature</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="h-[52px] border border-[#DFC8B8] px-3 py-[5px] align-bottom">
+                {signatures.landlordData && <img src={signatures.landlordData} alt="" className="mb-1 max-h-8 max-w-[160px] object-contain" />}
+              </td>
+              <td className="h-[52px] border border-[#DFC8B8] px-3 py-[5px] align-bottom">
+                {signatures.tenantData && <img src={signatures.tenantData} alt="" className="mb-1 max-h-8 max-w-[160px] object-contain" />}
+              </td>
+            </tr>
+            <tr>
+              <td className="border border-[#DFC8B8] px-3 py-[5px] align-bottom">{doc.landlordName} | Date: <strong>{landlordSignatureDate}</strong></td>
+              <td className="border border-[#DFC8B8] px-3 py-[5px] align-bottom">{doc.tenantName} | Date: <strong>{tenantSignatureDate}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div className="mt-[10px] text-center text-[8px] text-[#777]">Generated by MyPropertySuite &bull; Manage Smarter. Rent Easier. &bull; Powered by Khanify Technologies</div>
+      </div>
+    </article>
+  )
+}
+
+function ContractTermsEditor({ terms, defaultTerms, setTerms, copy, isDark, onClose }) {
+  const [draftTerms, setDraftTerms] = useState(() => normalizeContractTerms(terms, defaultTerms).map((term) => ({ ...term })))
+
+  const updateTerm = (id, key, value) => {
+    setDraftTerms((current) => current.map((term) => (term.id === id ? { ...term, [key]: value } : term)))
+  }
+
+  const addTerm = () => {
+    setDraftTerms((current) => [
+      ...current,
+      {
+        id: `custom-term-${Date.now()}-${current.length + 1}`,
+        title: copy.newClauseTitle,
+        text: '',
+      },
+    ])
+  }
+
+  const removeTerm = (id) => {
+    setDraftTerms((current) => (current.length > 1 ? current.filter((term) => term.id !== id) : current))
+  }
+
+  const resetTerms = () => {
+    setDraftTerms(normalizeContractTerms(defaultTerms).map((term) => ({ ...term })))
+  }
+
+  const saveTerms = () => {
+    setTerms(normalizeContractTerms(draftTerms, defaultTerms))
+    onClose()
+  }
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[95] flex items-center justify-center bg-[#17100C]/45 px-3 py-5 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onMouseDown={onClose}
+    >
+      <motion.div
+        className={cx('flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-[22px] border shadow-[0_34px_90px_rgba(23,16,12,0.30)]', isDark ? 'border-white/10 bg-[#17100C]' : 'border-white/90 bg-[#FFFDFB]')}
+        initial={{ scale: 0.96, y: 18 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.96, y: 18 }}
+        transition={{ type: 'spring', stiffness: 240, damping: 24 }}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className={cx('flex flex-col gap-4 border-b p-5 sm:flex-row sm:items-start sm:justify-between', isDark ? 'border-white/10' : 'border-[#F0DDCB]')}>
+          <div className="flex items-start gap-3">
+            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#8F5735] text-white shadow-[0_14px_28px_rgba(143,87,53,0.24)]"><FaFileContract /></span>
+            <div>
+              <h3 className={cx('text-lg font-black', isDark ? 'text-white' : 'text-[#17100C]')}>{copy.termEditorTitle}</h3>
+              <p className={cx('mt-1 text-xs font-bold leading-5 sm:text-sm', isDark ? 'text-white/50' : 'text-[#75675F]')}>{copy.termEditorSubtitle}</p>
+            </div>
+          </div>
+          <button type="button" onClick={onClose} className={cx('grid size-10 shrink-0 place-items-center rounded-xl border transition hover:-translate-y-0.5', isDark ? 'border-white/10 text-white/70 hover:border-[#B67848]' : 'border-[#EAD8C7] bg-white text-[#8F5735] hover:border-[#B67848]')} aria-label={copy.cancel}>
+            <FaTimes />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 space-y-3 overflow-auto p-5">
+          {draftTerms.map((term, index) => (
+            <motion.div
+              layout
+              key={term.id}
+              className={cx('rounded-2xl border p-4 shadow-[0_18px_45px_rgba(96,58,34,0.08)]', isDark ? 'border-white/10 bg-white/[0.04]' : 'border-[#F1E1D0] bg-white')}
+            >
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <span className="inline-flex items-center gap-2 rounded-full bg-[#F7E0CA] px-3 py-1.5 text-[11px] font-black uppercase text-[#8F5735]">
+                  <FaFileAlt />
+                  {index + 1}
+                </span>
+                <button type="button" onClick={() => removeTerm(term.id)} className={cx('inline-flex h-9 items-center justify-center gap-2 rounded-lg border px-3 text-[11px] font-black transition hover:-translate-y-0.5', isDark ? 'border-white/10 text-white/62 hover:border-red-300 hover:text-red-200' : 'border-[#EAD8C7] text-[#8F5735] hover:border-red-200 hover:text-red-600')}>
+                  <FaTrashAlt />
+                  {copy.removeClause}
+                </button>
+              </div>
+
+              <div className="grid gap-3 lg:grid-cols-[0.34fr_0.66fr]">
+                <label className="block">
+                  <span className={cx('mb-2 block text-[11px] font-black', isDark ? 'text-white/62' : 'text-[#5F4D42]')}>{copy.clauseTitle}</span>
+                  <input
+                    value={term.title}
+                    onChange={(event) => updateTerm(term.id, 'title', event.target.value)}
+                    className={cx('h-11 w-full rounded-xl border px-3 text-sm font-black shadow-[0_12px_28px_rgba(96,58,34,0.06)] outline-none transition hover:border-[#DDBB9C] focus:border-[#B67848] focus:ring-4 focus:ring-[#B67848]/12', isDark ? 'border-white/10 bg-[#120C08] text-white placeholder:text-white/28' : 'border-[#EAD8C7] bg-[#FFFCF8] text-[#241A14] placeholder:text-[#A89688]')}
+                  />
+                </label>
+
+                <label className="block">
+                  <span className={cx('mb-2 block text-[11px] font-black', isDark ? 'text-white/62' : 'text-[#5F4D42]')}>{copy.clauseText}</span>
+                  <textarea
+                    value={term.text}
+                    onChange={(event) => updateTerm(term.id, 'text', event.target.value)}
+                    rows={4}
+                    className={cx('min-h-[112px] w-full resize-y rounded-xl border px-3 py-3 text-sm font-bold leading-6 shadow-[0_12px_28px_rgba(96,58,34,0.06)] outline-none transition hover:border-[#DDBB9C] focus:border-[#B67848] focus:ring-4 focus:ring-[#B67848]/12', isDark ? 'border-white/10 bg-[#120C08] text-white placeholder:text-white/28' : 'border-[#EAD8C7] bg-[#FFFCF8] text-[#241A14] placeholder:text-[#A89688]')}
+                  />
+                </label>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className={cx('flex flex-col gap-3 border-t p-5 sm:flex-row sm:items-center sm:justify-between', isDark ? 'border-white/10' : 'border-[#F0DDCB]')}>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button type="button" onClick={resetTerms} className={cx('inline-flex h-11 items-center justify-center gap-2 rounded-lg border px-4 text-xs font-black transition hover:-translate-y-1', isDark ? 'border-white/10 bg-white/[0.04] text-white/70 hover:border-[#B67848]' : 'border-[#EAD8C7] bg-white text-[#5B4538] hover:border-[#B67848]')}>
+              {copy.resetTerms}
+            </button>
+            <button type="button" onClick={addTerm} className={cx('inline-flex h-11 items-center justify-center gap-2 rounded-lg border px-4 text-xs font-black transition hover:-translate-y-1', isDark ? 'border-white/10 bg-white/[0.04] text-white/70 hover:border-[#B67848]' : 'border-[#EAD8C7] bg-white text-[#8F5735] hover:border-[#B67848]')}>
+              <FaPlus />
+              {copy.addClause}
+            </button>
+          </div>
+          <button type="button" onClick={saveTerms} className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#8F5735] px-5 text-xs font-black text-white shadow-[0_16px_34px_rgba(143,87,53,0.24)] transition hover:-translate-y-1 hover:bg-[#A9673C]">
+            <FaCheck />
+            {copy.saveTerms}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+function ContractPreview({ property, room, tenant, rental, computed, settings, text, copy, isDark, signatures, contractTerms, setContractTerms, defaultContractTerms }) {
+  const [isEditingTerms, setIsEditingTerms] = useState(false)
+  const displayTerms = normalizeContractTerms(contractTerms, defaultContractTerms)
+
+  return (
+    <SectionPanel
+      icon={FaFileContract}
+      title={copy.contractTitle}
+      subtitle={copy.contractSubtitle}
+      isDark={isDark}
+      headerAction={(
+        <button type="button" onClick={() => setIsEditingTerms(true)} className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#A5633A] px-4 text-xs font-black text-white shadow-[0_14px_30px_rgba(96,58,34,0.22)] transition hover:-translate-y-1 hover:bg-[#8F5735]">
+          <FaPenNib />
+          {copy.editContractTerms}
+        </button>
+      )}
+    >
+      <div className={cx('max-h-[720px] overflow-auto rounded-xl border shadow-inner', isDark ? 'border-white/10 bg-[#EDE9E4]' : 'border-[#EAD8C7] bg-[#EDE9E4]')}>
+        <div className="min-w-[794px]">
+          <ContractDocumentView
+            property={property}
+            room={room}
+            tenant={tenant}
+            rental={rental}
+            computed={computed}
+            settings={settings}
+            text={text}
+            copy={copy}
+            signatures={signatures}
+            contractTerms={displayTerms}
+          />
+        </div>
+      </div>
+      <AnimatePresence>
+        {isEditingTerms && (
+          <ContractTermsEditor
+            terms={displayTerms}
+            defaultTerms={defaultContractTerms}
+            setTerms={setContractTerms}
+            copy={copy}
+            isDark={isDark}
+            onClose={() => setIsEditingTerms(false)}
+          />
+        )}
+      </AnimatePresence>
     </SectionPanel>
   )
 }
@@ -1180,8 +1644,9 @@ function SignaturePreview({ label, name, date, signature, isDark }) {
   )
 }
 
-function ReviewStep({ property, room, tenant, rental, computed, signatures, text, copy, language, confirmed, setConfirmed, setStep, isDark }) {
+function ReviewStep({ property, room, tenant, rental, computed, signatures, text, copy, language, confirmed, setConfirmed, setStep, isDark, onDownload, contractTerms = [] }) {
   const tenantName = tenant.fullName || copy.sample.tenantName
+  const termsCount = contractTerms.length
 
   return (
     <SectionPanel icon={FaClipboardCheck} title={copy.reviewTitle} subtitle={copy.reviewSubtitle} isDark={isDark}>
@@ -1204,6 +1669,7 @@ function ReviewStep({ property, room, tenant, rental, computed, signatures, text
             <KeyValue label={copy.monthlyRent} value={formatMoney(rental.monthlyRent)} isDark={isDark} />
             <KeyValue label={copy.initialPeriod} value={monthsLabel(rental.advanceMonths, copy)} isDark={isDark} />
             <KeyValue label={copy.initialAmount} value={formatMoney(computed.initialAmount)} isDark={isDark} />
+            <KeyValue label={copy.cautionDeposit} value={cautionLabel(rental, computed, copy)} isDark={isDark} />
             <KeyValue label={copy.moveInDate} value={formatDisplayDate(rental.moveInDate, language)} isDark={isDark} />
             <KeyValue label={copy.endDate} value={formatDisplayDate(computed.endDate, language)} isDark={isDark} />
             <KeyValue label={copy.subsequentCycle} value={cycleLabel(rental.cycleMonths, copy)} isDark={isDark} />
@@ -1216,6 +1682,7 @@ function ReviewStep({ property, room, tenant, rental, computed, signatures, text
           <div className="space-y-3">
             <KeyValue label={copy.contractFile} value={`Tenancy_Agreement_${safeFileName(tenantName)}.pdf`} isDark={isDark} />
             <KeyValue label={copy.contractStatus} value={copy.readySigned} isDark={isDark} />
+            <KeyValue label={copy.contractClauses} value={`${termsCount} ${termsCount === 1 ? copy.clause : copy.clauses}`} isDark={isDark} />
             <KeyValue label={copy.generatedOn} value={formatDisplayDate(rental.moveInDate, language)} isDark={isDark} />
             <button type="button" onClick={() => setStep(2)} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#EAD8C7] px-3 text-xs font-black text-[#8F5735]">
               <FaFileContract />
@@ -1230,6 +1697,24 @@ function ReviewStep({ property, room, tenant, rental, computed, signatures, text
             <SignaturePreview label={copy.tenantSignature} name={signatures.tenantName || tenantName} date={formatDisplayDate(signatures.tenantDate, language)} signature={signatures.tenantData} isDark={isDark} />
           </div>
         </ReviewCard>
+      </div>
+
+      <div className={cx('mt-5 flex flex-col gap-4 rounded-2xl border p-4 shadow-[0_20px_55px_rgba(96,58,34,0.10)] sm:flex-row sm:items-center sm:justify-between', isDark ? 'border-white/10 bg-white/[0.04]' : 'border-[#F1E1D0] bg-[#FFFCF8]')}>
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#F7E0CA] text-[#9A5D35]">
+            <FaFileContract />
+          </span>
+          <div>
+            <h4 className={cx('text-sm font-black', isDark ? 'text-white' : 'text-[#17100C]')}>{copy.finalContractActions}</h4>
+            <p className={cx('mt-1 text-xs font-bold leading-5', isDark ? 'text-white/48' : 'text-[#75675F]')}>{copy.finalContractActionsHelp}</p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <button type="button" onClick={onDownload} className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#A5633A] px-5 text-xs font-black text-white shadow-[0_14px_30px_rgba(96,58,34,0.22)] transition hover:-translate-y-1 hover:bg-[#8F5735]">
+            <FaDownload />
+            {copy.downloadPdf}
+          </button>
+        </div>
       </div>
 
       <label className={cx('mt-5 flex cursor-pointer gap-3 rounded-xl border p-4', isDark ? 'border-emerald-400/20 bg-emerald-400/10' : 'border-emerald-100 bg-emerald-50')}>
@@ -1247,6 +1732,7 @@ function TenantOnboardingFlow({ property, room, text, isDark, onCancel, onComple
   const { language } = usePreferences()
   const copy = onboardingCopy[language] ?? onboardingCopy.en
   const settings = useMemo(() => loadDashboardSettings(language), [language])
+  const defaultContractTerms = useMemo(() => createDefaultContractTerms(settings), [settings])
   const today = useMemo(() => formatInputDate(new Date()), [])
   const [step, setStep] = useState(0)
   const [confirmed, setConfirmed] = useState(false)
@@ -1265,8 +1751,8 @@ function TenantOnboardingFlow({ property, room, text, isDark, onCancel, onComple
     cycleMonths: '3',
     moveInDate: today,
     advanceMonths: '6',
-    cautionMonths: '1',
-    cautionAmount: String(room.rent || 0),
+    cautionMonths: '0',
+    cautionAmount: '',
   }))
   const [signatures, setSignatures] = useState(() => ({
     landlordName: settings.receipt.signatureName || settings.profile.landlordName || 'Khan Property Management',
@@ -1276,6 +1762,7 @@ function TenantOnboardingFlow({ property, room, text, isDark, onCancel, onComple
     tenantDate: today,
     tenantData: '',
   }))
+  const [contractTerms, setContractTerms] = useState(() => defaultContractTerms)
   const [completed, setCompleted] = useState(false)
 
   useEffect(() => {
@@ -1293,12 +1780,13 @@ function TenantOnboardingFlow({ property, room, text, isDark, onCancel, onComple
     return {
       initialAmount: rent * advanceMonths,
       nextAmount: rent * cycleMonths,
-      cautionAmount: rental.cautionAmount === '' ? rent * cautionMonths : Number(rental.cautionAmount || 0),
+      cautionAmount: cautionMonths > 0 && rental.cautionAmount === '' ? rent * cautionMonths : Number(rental.cautionAmount || 0),
       cautionMonths,
       endDate,
       nextDueDate: endDate,
     }
   }, [rental])
+  const displayContractTerms = useMemo(() => normalizeContractTerms(contractTerms, defaultContractTerms), [contractTerms, defaultContractTerms])
 
   const handleCancel = () => {
     if (typeof window === 'undefined' || window.confirm(copy.cancelConfirm)) {
@@ -1320,6 +1808,12 @@ function TenantOnboardingFlow({ property, room, text, isDark, onCancel, onComple
     const rentAmount = Number(rental.monthlyRent || 0).toLocaleString('en-US')
     const initialAmountLabel = Number(computed.initialAmount || 0).toLocaleString('en-US')
     const nextAmountLabel = Number(computed.nextAmount || 0).toLocaleString('en-US')
+    const cautionAmountLabel = Number(computed.cautionAmount || 0).toLocaleString('en-US')
+    const cautionTerm = `${Number(rental.cautionMonths || 0)} ${Number(rental.cautionMonths || 0) === 1 ? 'month' : 'months'}`
+    const hasCaution = hasCautionDeposit(rental, computed)
+    const cautionSentence = hasCaution
+      ? `The Tenant shall pay a refundable caution, also called security deposit, of <strong>${escapeHtml(cautionAmountLabel)} FCFA</strong> before taking possession of the premises. The caution represents <strong>${escapeHtml(cautionTerm)}</strong> and may be refunded after the Tenant vacates, less unpaid rent, utility arrears, or deductions for damage beyond normal wear and tear.`
+      : `No caution/security deposit is required for this tenancy unless both parties later agree otherwise in writing.`
     const landlordName = settings.profile.landlordName || settings.receipt.signatureName || 'John Doe'
     const landlordPhone = settings.profile.phone || '+237 651 508 182'
     const landlordEmail = settings.profile.email || 'landlord@mypropertysuite.com'
@@ -1359,6 +1853,13 @@ function TenantOnboardingFlow({ property, room, text, isDark, onCancel, onComple
     const endDateLabel = shortDate(computed.endDate)
     const endLongDate = longDate(computed.endDate)
     const nextDueDateLabel = shortDate(computed.nextDueDate)
+    const landlordSignatureDate = shortDate(signatures.landlordDate)
+    const tenantSignatureDate = shortDate(signatures.tenantDate)
+    const contractConditionRows = displayContractTerms.map((term) => `
+        <tr>
+          <th>${escapeHtml(term.title)}</th>
+          <td>${contractTermTextToHtml(term.text)}</td>
+        </tr>`).join('')
 
     const html = `<!doctype html>
 <html>
@@ -1403,6 +1904,9 @@ function TenantOnboardingFlow({ property, room, text, isDark, onCancel, onComple
     .property-table th,.schedule-table th{background:#f8f1ea;border:1px solid #dfc8b8;text-align:left;text-transform:uppercase;color:#5d5048;font-size:10px;padding:7px 9px;font-weight:900}
     .property-table td,.schedule-table td{border:1px solid #dfc8b8;padding:8px 9px;font-weight:800;text-align:left}
     .schedule-table .small{display:block;margin-top:4px;font-size:8px;font-weight:500;color:#5d5048}
+    .conditions-table{width:100%;border-collapse:collapse;border:1px solid #dfc8b8;table-layout:fixed}
+    .conditions-table th{width:23%;background:#f8f1ea;border:1px solid #dfc8b8;text-align:left;color:#5d5048;font-size:9px;padding:6px 8px;font-weight:900;text-transform:uppercase}
+    .conditions-table td{border:1px solid #dfc8b8;padding:6px 8px;text-align:justify}
     .terms-text{margin:0 0 7px;text-align:justify}
     .signature-table{width:100%;border-collapse:collapse;border:1px solid #dfc8b8;table-layout:fixed}
     .signature-table th{background:#f8f1ea;border:1px solid #dfc8b8;text-align:left;text-transform:uppercase;font-size:10px;padding:6px 12px;font-weight:900}
@@ -1517,7 +2021,15 @@ function TenantOnboardingFlow({ property, room, text, isDark, onCancel, onComple
       </table>
       <p class="terms-text" style="margin-top:6px">After the initial period, the subsequent payment cycle shall be <strong>${escapeHtml(cycleTerm.toLowerCase())}</strong>. The expected payment for each cycle is <strong>${escapeHtml(nextAmountLabel)} FCFA</strong>, with the next payment due on <strong>${escapeHtml(nextDueDateLabel)}</strong>.</p>
 
-      <h2 class="section-heading">5. Acknowledgement</h2>
+      <h2 class="section-heading">5. Caution / Security Deposit</h2>
+      <p class="terms-text">${cautionSentence}</p>
+
+      <h2 class="section-heading">6. Contract Conditions Summary</h2>
+      <table class="conditions-table">
+${contractConditionRows}
+      </table>
+
+      <h2 class="section-heading">7. Acknowledgement</h2>
       <p class="terms-text">By signing below, both parties confirm that they have read, understood and accepted the terms stated in this Agreement.</p>
       <table class="signature-table">
         <tr>
@@ -1529,8 +2041,8 @@ function TenantOnboardingFlow({ property, room, text, isDark, onCancel, onComple
           <td>${tenantSignature}</td>
         </tr>
         <tr>
-          <td>${escapeHtml(landlordName)} | Date: <span class="signature-line"></span></td>
-          <td>${escapeHtml(tenantName)} | Date: <span class="signature-line"></span></td>
+          <td>${escapeHtml(landlordName)} | Date: <strong>${escapeHtml(landlordSignatureDate)}</strong></td>
+          <td>${escapeHtml(tenantName)} | Date: <strong>${escapeHtml(tenantSignatureDate)}</strong></td>
         </tr>
       </table>
 
@@ -1572,6 +2084,9 @@ function TenantOnboardingFlow({ property, room, text, isDark, onCancel, onComple
         ...rental,
         initialAmount: computed.initialAmount,
         nextAmount: computed.nextAmount,
+        cautionMonths: rental.cautionMonths,
+        cautionAmount: computed.cautionAmount,
+        cautionLabel: cautionLabel(rental, computed, copy),
         endDate: computed.endDate,
         endDateLabel: formatDisplayDate(computed.endDate, language),
         nextDueDate: computed.nextDueDate,
@@ -1582,6 +2097,7 @@ function TenantOnboardingFlow({ property, room, text, isDark, onCancel, onComple
       contract: {
         fileName: `Tenancy_Agreement_${safeFileName(tenantName)}.pdf`,
         generatedAt: new Date().toISOString(),
+        terms: displayContractTerms,
       },
       signatures: {
         landlordName: signatures.landlordName,
@@ -1623,9 +2139,9 @@ function TenantOnboardingFlow({ property, room, text, isDark, onCancel, onComple
         <AnimatePresence mode="wait">
           {step === 0 && <TenantDetailsStep tenant={tenant} setTenant={setTenant} copy={copy} isDark={isDark} />}
           {step === 1 && <RentalTermsStep rental={rental} setRental={setRental} computed={computed} copy={copy} isDark={isDark} />}
-          {step === 2 && <ContractPreview property={property} room={room} tenant={tenant} rental={rental} computed={computed} settings={settings} text={text} copy={copy} language={language} isDark={isDark} onDownload={handleDownload} />}
+          {step === 2 && <ContractPreview property={property} room={room} tenant={tenant} rental={rental} computed={computed} settings={settings} text={text} copy={copy} isDark={isDark} signatures={signatures} contractTerms={displayContractTerms} setContractTerms={setContractTerms} defaultContractTerms={defaultContractTerms} />}
           {step === 3 && <SignaturesStep signatures={signatures} setSignatures={setSignatures} copy={copy} isDark={isDark} />}
-          {step === 4 && <ReviewStep property={property} room={room} tenant={tenant} rental={rental} computed={computed} signatures={signatures} text={text} copy={copy} language={language} confirmed={confirmed} setConfirmed={setConfirmed} setStep={setStep} isDark={isDark} />}
+          {step === 4 && <ReviewStep property={property} room={room} tenant={tenant} rental={rental} computed={computed} signatures={signatures} text={text} copy={copy} language={language} confirmed={confirmed} setConfirmed={setConfirmed} setStep={setStep} isDark={isDark} onDownload={handleDownload} contractTerms={displayContractTerms} />}
         </AnimatePresence>
 
         <div className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1641,8 +2157,8 @@ function TenantOnboardingFlow({ property, room, text, isDark, onCancel, onComple
             </button>
           ) : (
             <button type="button" onClick={complete} disabled={!confirmed || completed} className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#8F5735] px-6 text-xs font-black text-white shadow-[0_16px_34px_rgba(143,87,53,0.24)] transition hover:-translate-y-1 hover:bg-[#A9673C] disabled:cursor-not-allowed disabled:opacity-50">
-              <FaCheck />
-              {completed ? copy.completeSuccess : copy.complete}
+              <FaSave />
+              {completed ? copy.contractSaved : copy.saveContract}
               <FaArrowRight />
             </button>
           )}
